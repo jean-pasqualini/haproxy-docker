@@ -1,0 +1,47 @@
+version: '2'
+services:
+  pikachu:
+    container_name: pikachu
+    image: php:7.0-cli
+    environment:
+      - VIRTUAL_HOST=pikachu.local
+    expose:
+      - '80'
+    volumes:
+      - ./index.php:/app/index.php
+    networks:
+      demo:
+        aliases:
+          - bulbizar.local
+    working_dir: /app
+    entrypoint: php -S 0.0.0.0:80
+  bulbizar:
+    container_name: bulbizar
+    image: php:7.0-cli
+    environment:
+      - VIRTUAL_HOST=bulbizar.local
+    expose:
+      - '80'
+    volumes:
+      - ./index.php:/app/index.php
+    networks:
+      demo:
+        aliases:
+          - bulbizar.local
+    working_dir: /app
+    entrypoint: php -S 0.0.0.0:80
+  haproxy:
+    container_name: haproxy
+    image: dockercloud/haproxy:1.6.3
+    environment:
+      - ADDITIONAL_SERVICES=${COMPOSE_PROJECT_NAME}:pikachu,${COMPOSE_PROJECT_NAME}:bulbizar
+    networks:
+      - demo
+    ports:
+      - '80:80'
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+networks:
+  demo:
+    driver: bridge
